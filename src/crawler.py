@@ -44,12 +44,14 @@ class QuoteCrawler:
         timeout_seconds: float = 10.0,
         session: requests.Session | None = None,
         sleeper: Callable[[float], None] = time.sleep,
+        logger: Callable[[str], None] | None = None,
     ) -> None:
         self.start_url = start_url
         self.politeness_seconds = politeness_seconds
         self.timeout_seconds = timeout_seconds
         self.session = session or requests.Session()
         self.sleeper = sleeper
+        self.logger = logger
 
     def crawl(self, max_pages: int | None = None) -> list[CrawledPage]:
         """Crawl all paginated quote pages and return extracted text."""
@@ -65,8 +67,12 @@ class QuoteCrawler:
                 break
 
             if pages:
+                if self.logger:
+                    self.logger(f"Waiting {self.politeness_seconds:.0f} seconds before the next request...")
                 self.sleeper(self.politeness_seconds)
 
+            if self.logger:
+                self.logger(f"Fetching {next_url}")
             html = self._fetch(next_url)
             page, next_url = self._parse_page(next_url, html)
             pages.append(page)

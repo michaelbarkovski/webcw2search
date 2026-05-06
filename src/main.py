@@ -23,6 +23,9 @@ HELP_TEXT = """Commands:
 """
 
 
+OUTPUT_SEPARATOR = "-" * 72
+
+
 def run_shell(index_path: Path = DEFAULT_INDEX_PATH) -> None:
     engine = SearchEngine()
     print("COMP3011 Search Engine Tool")
@@ -42,6 +45,7 @@ def run_shell(index_path: Path = DEFAULT_INDEX_PATH) -> None:
         should_exit = handle_command(raw_command, engine, index_path)
         if should_exit:
             break
+        print(f"\n{OUTPUT_SEPARATOR}\n")
 
 
 def handle_command(command: str, engine: SearchEngine, index_path: Path = DEFAULT_INDEX_PATH) -> bool:
@@ -77,7 +81,7 @@ def handle_command(command: str, engine: SearchEngine, index_path: Path = DEFAUL
 def _build(engine: SearchEngine, index_path: Path) -> None:
     print("Crawling https://quotes.toscrape.com/ with a 6-second politeness window...")
     started = time.perf_counter()
-    crawler = QuoteCrawler()
+    crawler = QuoteCrawler(logger=print)
     try:
         pages = crawler.crawl()
     except CrawlError as exc:
