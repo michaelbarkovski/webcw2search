@@ -76,6 +76,7 @@ def test_find_command_displays_results(capsys) -> None:
     output = capsys.readouterr().out
     assert "Found 1 page" in output
     assert "https://example.com/" in output
+    assert "good friends" in output
 
 
 def test_find_command_displays_suggestions(capsys) -> None:

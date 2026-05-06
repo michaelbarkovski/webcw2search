@@ -17,6 +17,7 @@ HELP_TEXT = """Commands:
   load               Load the saved index from the file system
   print <word>       Print the inverted index postings for a word
   find <query>       Find pages containing all query words
+                     Supports "quoted phrases", AND, OR, and NOT
   help               Show this help text
   exit               Close the shell
 """
@@ -156,6 +157,8 @@ def _find(engine: SearchEngine, query: str) -> None:
     print(f"Found {len(results)} page(s) for '{query}':")
     for result in results:
         print(f"- {result.url} (score={result.score:.4f})")
+        if result.snippet:
+            print(f"  {result.snippet}")
 
 
 def main(argv: list[str] | None = None) -> int:

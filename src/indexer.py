@@ -22,6 +22,7 @@ class PageDocument:
     url: str
     title: str
     length: int
+    text: str = ""
 
 
 @dataclass
@@ -57,7 +58,12 @@ def build_index(pages: list[CrawledPage]) -> InvertedIndex:
 
     for page in pages:
         tokens = tokenize(page.text)
-        index.documents[page.url] = PageDocument(url=page.url, title=page.title, length=len(tokens))
+        index.documents[page.url] = PageDocument(
+            url=page.url,
+            title=page.title,
+            length=len(tokens),
+            text=page.text,
+        )
 
         positions_by_term: dict[str, list[int]] = {}
         for position, token in enumerate(tokens):
@@ -97,6 +103,7 @@ def load_index(path: Path | str = DEFAULT_INDEX_PATH) -> InvertedIndex:
             url=data["url"],
             title=data.get("title", data["url"]),
             length=int(data.get("length", 0)),
+            text=data.get("text", ""),
         )
         for url, data in payload.get("documents", {}).items()
     }

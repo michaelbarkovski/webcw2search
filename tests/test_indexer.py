@@ -32,4 +32,5 @@ def test_index_save_and_load_round_trip(tmp_path) -> None:
 
     assert loaded.document_count == 1
     assert loaded.documents["https://example.com/"].title == "Example"
+    assert loaded.documents["https://example.com/"].text == "Simple simple test"
     assert loaded.terms["simple"]["https://example.com/"].frequency == 2
