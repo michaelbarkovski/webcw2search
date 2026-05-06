@@ -1,0 +1,124 @@
+"""Inverted index construction and persistence."""
+
+from __future__ import annotations
+
+import json
+import re
+from collections import Counter
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+
+from .crawler import CrawledPage
+
+
+TOKEN_PATTERN = re.compile(r"[a-zA-Z0-9']+")
+DEFAULT_INDEX_PATH = Path("data/index.json")
+
+
+@dataclass
+class PageDocument:
+    """Metadata for a page stored in the index."""
+
+    url: str
+    title: str
+    length: int
+
+
+@dataclass
+class Posting:
+    """Word statistics for one page."""
+
+    frequency: int
+    positions: list[int]
+
+
+@dataclass
+class InvertedIndex:
+    """Serializable inverted index with page metadata."""
+
+    documents: dict[str, PageDocument] = field(default_factory=dict)
+    terms: dict[str, dict[str, Posting]] = field(default_factory=dict)
+
+    @property
+    def document_count(self) -> int:
+        return len(self.documents)
+
+
+def tokenize(text: str) -> list[str]:
+    """Return case-insensitive word tokens from text."""
+
+    return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
+
+
+def build_index(pages: list[CrawledPage]) -> InvertedIndex:
+    """Create an inverted index from crawled pages."""
+
+    index = InvertedIndex()
+
+    for page in pages:
+        tokens = tokenize(page.text)
+        index.documents[page.url] = PageDocument(url=page.url, title=page.title, length=len(tokens))
+
+        positions_by_term: dict[str, list[int]] = {}
+        for position, token in enumerate(tokens):
+            positions_by_term.setdefault(token, []).append(position)
+
+        for term, positions in positions_by_term.items():
+            index.terms.setdefault(term, {})[page.url] = Posting(
+                frequency=len(positions),
+                positions=positions,
+            )
+
+    return index
+
+
+def save_index(index: InvertedIndex, path: Path | str = DEFAULT_INDEX_PATH) -> None:
+    """Save the index as readable JSON."""
+
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "documents": {url: asdict(document) for url, document in index.documents.items()},
+        "terms": {
+            term: {url: asdict(posting) for url, posting in postings.items()}
+            for term, postings in index.terms.items()
+        },
+    }
+    target.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def load_index(path: Path | str = DEFAULT_INDEX_PATH) -> InvertedIndex:
+    """Load an index from JSON."""
+
+    source = Path(path)
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    documents = {
+        url: PageDocument(
+            url=data["url"],
+            title=data.get("title", data["url"]),
+            length=int(data.get("length", 0)),
+        )
+        for url, data in payload.get("documents", {}).items()
+    }
+    terms = {
+        term: {
+            url: Posting(
+                frequency=int(posting["frequency"]),
+                positions=[int(position) for position in posting.get("positions", [])],
+            )
+            for url, posting in postings.items()
+        }
+        for term, postings in payload.get("terms", {}).items()
+    }
+    return InvertedIndex(documents=documents, terms=terms)
+
+
+def term_frequencies(index: InvertedIndex) -> Counter[str]:
+    """Return total collection frequency for each term."""
+
+    return Counter(
+        {
+            term: sum(posting.frequency for posting in postings.values())
+            for term, postings in index.terms.items()
+        }
+    )
