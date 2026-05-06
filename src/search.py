@@ -1,5 +1,3 @@
-"""Search and ranking logic for the inverted index."""
-
 from __future__ import annotations
 
 import math
@@ -12,8 +10,6 @@ from .indexer import InvertedIndex, Posting, tokenize
 
 @dataclass(frozen=True)
 class SearchResult:
-    """A ranked page returned by a query."""
-
     url: str
     title: str
     score: float
@@ -22,8 +18,6 @@ class SearchResult:
 
 
 class SearchEngine:
-    """Query an inverted index with TF-IDF and simple proximity scoring."""
-
     def __init__(self, index: InvertedIndex | None = None) -> None:
         self.index = index
 
@@ -41,8 +35,6 @@ class SearchEngine:
         return index.terms.get(tokens[0], {})
 
     def find(self, query: str) -> tuple[list[SearchResult], dict[str, list[str]]]:
-        """Return ranked pages containing the query terms plus suggestions."""
-
         index = self._require_index()
         query = query.strip()
         terms = self._query_terms(query)
@@ -54,6 +46,7 @@ class SearchEngine:
         if missing:
             return [], suggestions
 
+        #query mode
         phrase_terms = self._phrase_terms(query)
         candidate_urls = self._candidate_urls(query, terms)
         if phrase_terms:
@@ -91,6 +84,7 @@ class SearchEngine:
         return tokenize(phrases[0])
 
     def _candidate_urls(self, query: str, terms: list[str]) -> set[str]:
+        #boolean search
         operator = self._boolean_operator(query)
         if operator is None:
             return self._and_urls(terms)
@@ -124,6 +118,7 @@ class SearchEngine:
         return candidate_urls
 
     def _contains_phrase(self, url: str, phrase_terms: list[str]) -> bool:
+        #phrase search
         if len(phrase_terms) < 2:
             return bool(phrase_terms)
 
@@ -138,6 +133,7 @@ class SearchEngine:
         return False
 
     def _score(self, url: str, terms: list[str], phrase_terms: list[str] | None = None) -> float:
+        #tf-idf
         index = self._require_index()
         document = index.documents[url]
         document_length = max(document.length, 1)
@@ -154,6 +150,7 @@ class SearchEngine:
         return score + self._proximity_bonus(url, matched_terms) + phrase_bonus
 
     def _proximity_bonus(self, url: str, terms: list[str]) -> float:
+        #word distance
         if len(terms) < 2:
             return 0.0
 
@@ -175,6 +172,7 @@ class SearchEngine:
         return 1 / (1 + best_span)
 
     def _snippet(self, url: str, terms: list[str], radius: int = 70) -> str:
+        #snippet
         index = self._require_index()
         text = index.documents[url].text
         if not text:

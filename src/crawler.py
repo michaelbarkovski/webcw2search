@@ -1,11 +1,3 @@
-"""Website crawler for the COMP3011 search engine coursework.
-
-The crawler uses the libraries recommended by the brief: requests for HTTP
-requests and BeautifulSoup for parsing HTML.  The default settings target
-https://quotes.toscrape.com/ and respect the required six-second politeness
-window between live requests.
-"""
-
 from __future__ import annotations
 
 import time
@@ -22,21 +14,17 @@ DEFAULT_POLITENESS_SECONDS = 6.0
 
 
 class CrawlError(RuntimeError):
-    """Raised when a page cannot be fetched successfully."""
+    pass
 
 
 @dataclass(frozen=True)
 class CrawledPage:
-    """Text extracted from a crawled page."""
-
     url: str
     title: str
     text: str
 
 
 class QuoteCrawler:
-    """Crawl quotes.toscrape.com pages by following pagination links."""
-
     def __init__(
         self,
         start_url: str = DEFAULT_START_URL,
@@ -54,8 +42,6 @@ class QuoteCrawler:
         self.logger = logger
 
     def crawl(self, max_pages: int | None = None) -> list[CrawledPage]:
-        """Crawl all paginated quote pages and return extracted text."""
-
         pages: list[CrawledPage] = []
         visited: set[str] = set()
         next_url: str | None = self.start_url
@@ -89,9 +75,11 @@ class QuoteCrawler:
         return response.text
 
     def _parse_page(self, url: str, html: str) -> tuple[CrawledPage, str | None]:
+        #html parsing
         soup = BeautifulSoup(html, "html.parser")
         title = soup.title.get_text(" ", strip=True) if soup.title else url
 
+        #quote text
         quote_blocks = soup.select(".quote")
         if quote_blocks:
             text_parts: list[str] = []
@@ -106,9 +94,10 @@ class QuoteCrawler:
                 text_parts.extend(tags)
             text = " ".join(text_parts)
         else:
-            # Fallback keeps the crawler useful if the HTML structure changes.
+            #fallback text
             text = soup.get_text(" ", strip=True)
 
+        #next page
         next_link = soup.select_one("li.next a")
         next_url = urljoin(url, next_link["href"]) if next_link and next_link.get("href") else None
 

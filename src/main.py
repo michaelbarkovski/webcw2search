@@ -1,5 +1,3 @@
-"""Interactive command-line interface for the coursework search tool."""
-
 from __future__ import annotations
 
 import argparse
@@ -49,8 +47,6 @@ def run_shell(index_path: Path = DEFAULT_INDEX_PATH) -> None:
 
 
 def handle_command(command: str, engine: SearchEngine, index_path: Path = DEFAULT_INDEX_PATH) -> bool:
-    """Handle one shell command. Returns True when the shell should exit."""
-
     name, _, arguments = command.partition(" ")
     name = name.lower()
     arguments = arguments.strip()

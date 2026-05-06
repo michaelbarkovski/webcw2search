@@ -1,5 +1,3 @@
-"""Inverted index construction and persistence."""
-
 from __future__ import annotations
 
 import json
@@ -17,8 +15,6 @@ DEFAULT_INDEX_PATH = Path("data/index.json")
 
 @dataclass
 class PageDocument:
-    """Metadata for a page stored in the index."""
-
     url: str
     title: str
     length: int
@@ -27,16 +23,12 @@ class PageDocument:
 
 @dataclass
 class Posting:
-    """Word statistics for one page."""
-
     frequency: int
     positions: list[int]
 
 
 @dataclass
 class InvertedIndex:
-    """Serializable inverted index with page metadata."""
-
     documents: dict[str, PageDocument] = field(default_factory=dict)
     terms: dict[str, dict[str, Posting]] = field(default_factory=dict)
 
@@ -46,17 +38,14 @@ class InvertedIndex:
 
 
 def tokenize(text: str) -> list[str]:
-    """Return case-insensitive word tokens from text."""
-
     return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
 
 
 def build_index(pages: list[CrawledPage]) -> InvertedIndex:
-    """Create an inverted index from crawled pages."""
-
     index = InvertedIndex()
 
     for page in pages:
+        #page metadata
         tokens = tokenize(page.text)
         index.documents[page.url] = PageDocument(
             url=page.url,
@@ -65,10 +54,12 @@ def build_index(pages: list[CrawledPage]) -> InvertedIndex:
             text=page.text,
         )
 
+        #word positions
         positions_by_term: dict[str, list[int]] = {}
         for position, token in enumerate(tokens):
             positions_by_term.setdefault(token, []).append(position)
 
+        #postings
         for term, positions in positions_by_term.items():
             index.terms.setdefault(term, {})[page.url] = Posting(
                 frequency=len(positions),
@@ -79,8 +70,6 @@ def build_index(pages: list[CrawledPage]) -> InvertedIndex:
 
 
 def save_index(index: InvertedIndex, path: Path | str = DEFAULT_INDEX_PATH) -> None:
-    """Save the index as readable JSON."""
-
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -94,8 +83,6 @@ def save_index(index: InvertedIndex, path: Path | str = DEFAULT_INDEX_PATH) -> N
 
 
 def load_index(path: Path | str = DEFAULT_INDEX_PATH) -> InvertedIndex:
-    """Load an index from JSON."""
-
     source = Path(path)
     payload = json.loads(source.read_text(encoding="utf-8"))
     documents = {
@@ -121,8 +108,6 @@ def load_index(path: Path | str = DEFAULT_INDEX_PATH) -> InvertedIndex:
 
 
 def term_frequencies(index: InvertedIndex) -> Counter[str]:
-    """Return total collection frequency for each term."""
-
     return Counter(
         {
             term: sum(posting.frequency for posting in postings.values())
