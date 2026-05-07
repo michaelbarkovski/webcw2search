@@ -111,7 +111,7 @@ For the target website, crawling time is dominated by the required 6-second poli
 
 ## GenAI Reflection Notes
 
-GenAI was used to help plan the coursework structure against the marking criteria, suggest test coverage, and draft implementation ideas. Its suggestions still need to be checked critically: the coursework requires full understanding of all submitted code, and AI-generated code can miss edge cases such as network failures, empty queries, or the required politeness delay. The final video should include specific examples of where AI helped, where it needed correction, and how debugging the code affected learning.
+GenAI was used in critical areas of this project. First of all it was used as a checklist for all requirements, making sure none were missed. During advanced feature implementation, it was used to suggest new ways to elevate the project and make it stand out, the suggestion feature was one I was most proud of. AI was also used to make sure I had a comprehensive testing suite, which ensures everything has been tested and is what helped me a lot in CW1, and I have transferred this skill onto this coursework. 
 
 ## Submission Checklist
 
