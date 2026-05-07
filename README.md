@@ -113,11 +113,3 @@ For the target website, crawling time is dominated by the required 6-second poli
 
 GenAI was used in critical areas of this project. First of all it was used as a checklist for all requirements, making sure none were missed. During advanced feature implementation, it was used to suggest new ways to elevate the project and make it stand out, the suggestion feature was one I was most proud of. AI was also used to make sure I had a comprehensive testing suite, which ensures everything has been tested and is what helped me a lot in CW1, and I have transferred this skill onto this coursework. 
 
-## Submission Checklist
-
-- Run `build` once and include the generated `data/index.json`.
-- Run `pytest` and note the result for the video.
-- Record a maximum 5-minute video showing `build`, `load`, `print`, and `find`.
-- Demonstrate edge cases such as empty queries and missing words.
-- Show Git commit history with meaningful incremental commits.
-- Submit a text document containing the video link, GitHub URL, and index file information.
